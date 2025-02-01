@@ -78,8 +78,11 @@ Aplikasi ini digunakan untuk mengelola peresepan obat oleh dokter dan pelayanan 
 
 ## Penggunaan
 - **Dokter**: Login menggunakan API eksternal, mencatat pemeriksaan pasien, dan menulis resep.
+   Link : /login/doctor
+   Untuk login sebagai dokter
 - **Apoteker**: Melayani resep, melakukan pembayaran, dan mencetak resi.
-
+   Link : login/pharmacist
+   Untuk login sebagai apoteker
 ## API Eksternal
 ### 1. **Daftar Obat**
    **Endpoint:**
