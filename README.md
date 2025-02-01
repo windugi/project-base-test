@@ -137,7 +137,7 @@ resep-obat/
 ## Coding Style & Standar
 - Menggunakan **PSR-12** coding standard.
 - Menggunakan **Laravel Design Pattern** seperti Repository Pattern.
-- Menyimpan log perubahan data.
+- Menyimpan log perubahan data.(Belum selesai)
 
 ## Kontribusi
 1. Fork repository ini.
