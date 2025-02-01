@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use App\Models\Log;
 
 class AuthController extends Controller
 {
@@ -46,6 +47,12 @@ class AuthController extends Controller
             ]
         );
 
+        Log::create([
+            'level' => 'info',
+            'message' => 'Login sebagai dokter berhasil dengan email: ' . $request->email,
+            'context' => json_encode($request->all()), // Menyimpan konteks tambahan jika diperlukan
+        ]);
+
         // Simpan token ke sesi
         Auth::login($user); // Login ke sistem Laravel
         session(['role' => Auth::user()->role, 'api_token' => $data['access_token']]);            
@@ -61,10 +68,22 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
+            Log::create([
+                'level' => 'info',
+                'message' => 'Login sebagai apoteker berhasil dengan email: ' . $request->email,
+                'context' => json_encode($request->all()), // Menyimpan konteks tambahan jika diperlukan
+            ]);
     
             // return redirect()->route('pharmacist.dashboard');
             return $this->redirectToDashboard();
         }
+
+        Log::create([
+            'level' => 'error',
+            'message' => 'Login sebagai apoteker gagal dengan email: ' . $request->email,
+            'context' => json_encode($request->all()), // Menyimpan konteks tambahan jika diperlukan
+        ]);
+        
     
         return back()->withErrors(['error' => 'Login gagal, periksa kembali email dan password.']);
     }
@@ -79,7 +98,7 @@ class AuthController extends Controller
             }
         }
 
-        return redirect()->route('home'); // Redirect default jika tidak ada role
+        return redirect()->route('/'); // Redirect default jika tidak ada role
     }
 
 
@@ -87,10 +106,22 @@ class AuthController extends Controller
     public function logout()
     {
         if (Auth::user()->role == 'dokter') {
+            Log::create([
+                'level' => 'info',
+                'message' => 'Logout dari aku ' . auth()->user()->name . ' berhasil',
+                'context' => null, // Menyimpan konteks tambahan jika diperlukan
+            ]);
+
             Auth::logout();
             session()->forget('doctor_token');
             return redirect('/login/doctor');
         } elseif (Auth::user()->role == 'apoteker') {
+            Log::create([
+                'level' => 'info',
+                'message' => 'Logout dari aku ' . auth()->user()->name . ' berhasil',
+                'context' => null, // Menyimpan konteks tambahan jika diperlukan
+            ]);
+
             Auth::logout();
             session()->forget('doctor_token');
             return redirect('/login/pharmacist');

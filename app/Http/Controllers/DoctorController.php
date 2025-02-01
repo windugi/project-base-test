@@ -14,6 +14,7 @@ use App\Services\MedicineService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ExaminationMedicine;
 use DB;
+use App\Models\Log;
 
 class DoctorController extends Controller
 {
@@ -93,7 +94,12 @@ class DoctorController extends Controller
             $medicineIds = DB::table('examination_medicines')
             ->where('examination_id', $id)
             ->pluck('medicine_id');
-
+            
+            Log::create([
+                'level' => 'info',
+                'message' => 'Melihat resep dari dokter ' . auth()->user()->name . ' dengan resep id '.$id.' berhasil',
+                'context' => null, // Menyimpan konteks tambahan jika diperlukan
+            ]);
 
             return view('doctor.examinations.edit', compact('prescription', 'medicines','patients','medicineIds'));
         }
@@ -126,9 +132,7 @@ class DoctorController extends Controller
                     $fileName = time() . '_' . $request->file('examination_letter')->getClientOriginalName();
                     $request->file('examination_letter')->move(public_path('examination_letters'), $fileName);
                     $letterPath = 'examination_letters/' . $fileName; // Simpan jalur relatif
-                } else {
-                    return back()->withErrors(['examination_letter' => 'File surat harus diunggah.']);
-                }
+                } 
             
 
             // Update pemeriksaan
@@ -145,6 +149,12 @@ class DoctorController extends Controller
             foreach ($request->medicine_ids as $medicineId) {
                 $examination->medicines()->create(['examination_id' => $id, 'medicine_id' => $medicineId]);
             }
+
+            Log::create([
+                'level' => 'info',
+                'message' => 'Mengedit resep dari dokter ' . auth()->user()->name . ' dengan resep id '.$id.' berhasil',
+                'context' => null, // Menyimpan konteks tambahan jika diperlukan
+            ]);
 
             return redirect()->route('doctor.dashboard')->with('success', 'Pemeriksaan berhasil diperbarui.');
         }
@@ -181,16 +191,16 @@ class DoctorController extends Controller
                 'examination_letter' => 'nullable|file|mimes:jpg,png|max:2048',
                 'medicine_ids' => 'required|array',
             ]);
-            $fileName = 'examination_letters/'.time() . '_' . $request->file('examination_letter')->getClientOriginalName();
 
     
 
+        $fileName = null;
         $letterPath = null;
         if ($request->hasFile('examination_letter')) {
+            $fileName = 'examination_letters/'.time() . '_' . $request->file('examination_letter')->getClientOriginalName();
+
             $letterPath = $request->file('examination_letter')->move(public_path('examination_letters'), $fileName); // Simpan di folder 'examination_letters'
-        } else {
-            return back()->withErrors(['examination_letter' => 'File surat harus diunggah.']);
-        }
+        } 
 
         // Simpan pemeriksaan
         $examination = Examination::create([
@@ -215,6 +225,12 @@ class DoctorController extends Controller
                 'medicine_id' => $medicine_id
             ]);
         }
+
+        Log::create([
+            'level' => 'info',
+            'message' => 'Menambah resep dari dokter ' . auth()->user()->name . ' dengan pasien id '.$request->patient_id.' berhasil',
+            'context' => null, // Menyimpan konteks tambahan jika diperlukan
+        ]);
     
         return redirect()->route('doctor.dashboard')->with('success', 'Pemeriksaan berhasil disimpan');
     }

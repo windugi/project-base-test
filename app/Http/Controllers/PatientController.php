@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Patient;
 use Carbon\Carbon;
+use App\Models\Log;
 
 class PatientController extends Controller
 {
@@ -28,6 +29,11 @@ class PatientController extends Controller
         // dd(request()->all() );
 
         Patient::create($request->all());
+        Log::create([
+            'level' => 'info',
+            'message' => 'Pembuatan pasien dengan nama: ' . $request->name . 'berhasil',
+            'context' => json_encode($request->all()), // Menyimpan konteks tambahan jika diperlukan
+        ]);
         return redirect()->route('doctor.patients.index')->with('success', 'Pasien berhasil ditambahkan.');
     }
 
@@ -36,7 +42,11 @@ class PatientController extends Controller
 
         $patient = Patient::findOrFail($id);
         $age = Carbon::parse($patient->birth_date)->age;
-        
+        Log::create([
+            'level' => 'info',
+            'message' => 'Melihat data pasien dengan id: ' . $id . ' berhasil',
+            'context' => json_encode($id), // Menyimpan konteks tambahan jika diperlukan
+        ]);
         return view('doctor.patients.show', compact('patient','age'));
     }
 
@@ -50,7 +60,11 @@ class PatientController extends Controller
     {
         $patient = Patient::findOrFail($id);
         $patient->update($request->all());
-
+        Log::create([
+            'level' => 'info',
+            'message' => 'Edit data pasien dengan id: ' . $id . ' berhasil',
+            'context' => json_encode($request->all()), // Menyimpan konteks tambahan jika diperlukan
+        ]);
         return redirect()->route('doctor.patients.index')->with('success', 'Data pasien berhasil diperbarui.');
     }
 
@@ -58,6 +72,12 @@ class PatientController extends Controller
     {
         $patient = Patient::findOrFail($id);
         $patient->delete();
+
+        Log::create([
+            'level' => 'info',
+            'message' => 'Hapus data pasien dengan id: ' . $id . ' berhasil',
+            'context' => json_encode($id), // Menyimpan konteks tambahan jika diperlukan
+        ]);
 
         return redirect()->route('doctor.patients.index')->with('success', 'Data pasien berhasil dihapus.');
     }

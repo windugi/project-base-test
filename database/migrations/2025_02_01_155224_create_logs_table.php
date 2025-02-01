@@ -15,10 +15,10 @@ class CreateLogsTable extends Migration
     {
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('action');
-            $table->text('details');
-            $table->timestamps();
+            $table->string('level'); // Level log (info, error, etc.)
+            $table->text('message'); // Pesan log
+            $table->string('context')->nullable(); // Konteks tambahan (misalnya, ID pengguna, ID resep, dll.)
+            $table->timestamps(); // Timestamps untuk created_at dan updated_at
         });
     }
 

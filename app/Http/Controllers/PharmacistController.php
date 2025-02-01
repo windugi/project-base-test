@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Examination;
 use App\Models\ExaminationMedicine;
 use Carbon\Carbon;
+use App\Models\Log;
 
 class PharmacistController extends Controller
 {
@@ -27,6 +28,11 @@ class PharmacistController extends Controller
         // dd($id);
         $DateNow = Carbon::now();
         $examination->update(['status' => 'paid','tanggal_diterima' => $DateNow]);
+        Log::create([
+            'level' => 'info',
+            'message' => 'Edit data layanan dengan id: ' . $id . ' berhasil',
+            'context' => json_encode($id), // Menyimpan konteks tambahan jika diperlukan
+        ]);
         return redirect()->route('pharmacist.dashboard')->with('success', 'Resep berhasil diproses.');
     }
 
@@ -89,6 +95,12 @@ class PharmacistController extends Controller
                }
            }
        }
+
+       Log::create([
+        'level' => 'info',
+        'message' => 'Berhasil cetak resi dengan id: ' . $id . ' berhasil',
+        'context' => json_encode($id), // Menyimpan konteks tambahan jika diperlukan
+    ]);
        // Buat PDF
        $pdf = PDF::loadView('pharmacist.prescriptions.pdf.resep', compact('resep', 'obatDetails','totalHarga'));
 
@@ -102,6 +114,8 @@ class PharmacistController extends Controller
                 'Content-Disposition' => 'inline; filename="resi_pembayaran_resep.pdf"',
             ]
         );
+
+      
 
         // Cetak PDF
         return $pdf->download('resi_pembayaran_resep.pdf');   
@@ -139,6 +153,12 @@ class PharmacistController extends Controller
                 }
             }
         }
+        Log::create([
+            'level' => 'info',
+            'message' => 'Berhasil lihat resep dengan id: ' . $id . ' berhasil',
+            'context' => json_encode($id), // Menyimpan konteks tambahan jika diperlukan
+        ]);
+
         return view('pharmacist.prescriptions.show', compact('prescription','obatDetails','totalHarga'));
     }
     private function getPriceFromApi($client, $token, $medicineId, $waktuPemeriksaan)
