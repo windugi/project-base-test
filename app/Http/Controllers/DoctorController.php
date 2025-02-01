@@ -101,28 +101,52 @@ class DoctorController extends Controller
         // Memperbarui resep
         public function updatePrescription(Request $request, $id)
         {
-            $prescription = Examination::findOrFail($id);
-    
-            if ($prescription->status == 'processed') {
-                return redirect()->back()->with('error', 'Resep sudah diproses oleh apoteker dan tidak dapat diubah.');
-            }
-    
-            $prescription->update([
+
+            $request->validate([
+                'patient_id' => 'required|exists:patients,id',
+                'examination_letter' => 'nullable|file|mimes:jpg,png|max:2048',
+                'medicine_ids' => 'required|array',
+            ]);
+
+            // Temukan pemeriksaan berdasarkan ID
+            $examination = Examination::findOrFail($id);
+
+            // Simpan surat jika ada
+            $letterPath = $examination->examination_letter; // Simpan path surat lama
+                if ($request->hasFile('examination_letter')) {
+                    // Hapus file lama jika ada
+                    if ($letterPath) {
+                        // Hapus file dari folder public
+                        $oldFilePath = public_path($letterPath);
+                        if (file_exists($oldFilePath)) {
+                            unlink($oldFilePath);
+                        }
+                    }
+                    // Simpan file baru di folder public/examination_letters
+                    $fileName = time() . '_' . $request->file('examination_letter')->getClientOriginalName();
+                    $request->file('examination_letter')->move(public_path('examination_letters'), $fileName);
+                    $letterPath = 'examination_letters/' . $fileName; // Simpan jalur relatif
+                } else {
+                    return back()->withErrors(['examination_letter' => 'File surat harus diunggah.']);
+                }
+            
+
+            // Update pemeriksaan
+            $examination->update([
                 'patient_id' => $request->patient_id,
                 'vital_signs' => $request->vital_signs,
-                'examination_result'=>$request->examination_result,
+                'examination_result' => $request->examination_result,
+                'examination_letter' => $letterPath, // Simpan path surat
             ]);
-            
-            $medicineIds = $request->medicine_ids;
-            $prescription->medicines()->delete(); // Hapus data lama jika perlu
-            // dd($medicineIds);
 
-            foreach ($medicineIds as $medicineId) {
-                $prescription->medicines()->create([
-                    'medicine_id' => $medicineId
-                ]);
+            // Update obat yang dipilih
+            DB::table('examination_medicines')->where('examination_id', $id)->delete();
+
+            foreach ($request->medicine_ids as $medicineId) {
+                $examination->medicines()->create(['examination_id' => $id, 'medicine_id' => $medicineId]);
             }
-            return redirect()->route('doctor.dashboard')->with('success', 'Resep berhasil diperbarui.');
+
+            return redirect()->route('doctor.dashboard')->with('success', 'Pemeriksaan berhasil diperbarui.');
         }
     
 
@@ -152,19 +176,27 @@ class DoctorController extends Controller
     public function store(Request $request)
     {
         // dd($request->all()); // Debug: Apakah data sudah masuk?
-        $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'vital_signs' => 'nullable|string',
-            'examination_result' => 'nullable|string',
-            'medicine_ids' => 'required|array',
-            // 'medicine_ids.*' => 'exists:medicines,id',
-            'examination_letter' => 'nullable|file|max:2048',
-        ]);
+            $request->validate([
+                'patient_id' => 'required|exists:patients,id',
+                'examination_letter' => 'nullable|file|mimes:jpg,png|max:2048',
+                'medicine_ids' => 'required|array',
+            ]);
+            $fileName = 'examination_letters/'.time() . '_' . $request->file('examination_letter')->getClientOriginalName();
 
-        // // Simpan pemeriksaan
+    
+
+        $letterPath = null;
+        if ($request->hasFile('examination_letter')) {
+            $letterPath = $request->file('examination_letter')->move(public_path('examination_letters'), $fileName); // Simpan di folder 'examination_letters'
+        } else {
+            return back()->withErrors(['examination_letter' => 'File surat harus diunggah.']);
+        }
+
+        // Simpan pemeriksaan
         $examination = Examination::create([
             'doctor_id' => auth()->user()->id,
             'patient_id' => $request->patient_id,
+            'examination_letter' => $fileName,
             'vital_signs' => $request->vital_signs,
             'examination_result' => $request->examination_result,
             'status' => 'pending',

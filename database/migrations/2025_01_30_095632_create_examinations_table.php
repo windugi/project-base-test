@@ -17,6 +17,7 @@ class CreateExaminationsTable extends Migration
             $table->id();
             $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
+            $table->string('examination_letter')->nullable();
             $table->string('vital_signs')->nullable();
             $table->text('examination_result')->nullable();
             $table->string('status')->nullable();

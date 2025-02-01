@@ -22,9 +22,17 @@
     <h1>Resi Pembayaran Resep</h1>
     <h2>Data Pemeriksaan</h2>
     <p>ID Pemeriksaan: {{ $resep->id }}</p>
-    <p>Detail Pemeriksaan: {{ $resep->examination_result }}</p> <!-- Sesuaikan dengan field yang ada di model Examination -->
-    <p>Waktu Kunjungan: {{ $resep->created_at }}</p> <!-- Sesuaikan dengan field yang ada di model Examination -->
-    <p>Divalidasi: {{ $resep->tanggal_diterima }}</p> <!-- Sesuaikan dengan field yang ada di model Examination -->
+    <p>Detail Pemeriksaan: {{ $resep->examination_result }}</p>
+    <p>Waktu Kunjungan: {{ $resep->created_at }}</p>
+    <p>Divalidasi: {{ $resep->tanggal_diterima }}</p>
+
+    <!-- Menampilkan file yang diunggah jika ada -->
+    @if($resep->examination_letter)
+        <h2>File Surat Pemeriksaan:</h2>
+        <img src="{{ public_path($resep->examination_letter) }}" alt="Surat Pemeriksaan" style="max-width: 50%; height: auto;">
+    @else
+        <p>Tidak ada file surat pemeriksaan yang diunggah.</p>
+    @endif
 
     <h2>Daftar Obat</h2>
     <table>
@@ -38,12 +46,12 @@
             @foreach ($obatDetails as $obat)
                 <tr>
                     <td>{{ $obat['name'] }}</td>
-                    <td>{{ $obat['price'] }}</td>
+                    <td>{{ formatRupiah($obat['price']) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <h3>Total Harga: {{ $totalHarga }}</h3> <!-- Menampilkan total harga -->
+    <h3>Total Harga:  {{ formatRupiah($totalHarga) }}</h3>
 </body>
 </html>

@@ -1,46 +1,61 @@
-@extends('adminlte::page')
-
-@section('title', 'Edit Resep')
-
-@section('content_header')
-    <h1>Edit Resep</h1>
-@endsection
+@extends('layouts.app')
 
 @section('content')
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('doctor.prescriptions.update', $prescription->id) }}" method="POST">
-                @csrf
-                <div class="mb-3">
+    <div class="container">
+        <h2>Edit Pemeriksaan</h2>
+
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('doctor.prescriptions.update', $prescription->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <!-- Pilih Pasien -->
+            <div class="mb-3">
                 <label class="form-label">Pilih Pasien</label>
-                    <select name="patient_id" class="form-control select2">
-                        @foreach($patients as $patient)
-                            <option value="{{ $patient->id }}" <?php if ($patient->id == $prescription->patient_id) { echo 'selected="selected"'; } ?>>{{ $patient->name }} - {{ $patient->id }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Apakah pasien membawa surat?</label>
-                    <select id="hasLetter" name="has_letter" class="form-control">
-                        <option value="no">Tidak</option>
-                        <option value="yes">Ya</option>
-                    </select>
-                </div>
+                <select name="patient_id" class="form-control select2" required>
+                    <option value="">Pilih Pasien</option>
+                    @foreach($patients as $patient)
+                        <option value="{{ $patient->id }}" {{ $prescription->patient_id == $patient->id ? 'selected' : '' }}>
+                            {{ $patient->name }} - {{ $patient->id }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-                <div id="uploadLetter" class="mb-3" style="display: none;">
-                    <label class="form-label">Unggah Surat Pemeriksaan</label>
-                    <input type="file" name="examination_letter" class="form-control">
-                </div>
+            <!-- Input Upload Surat -->
+            <div id="uploadLetter" class="mb-3">
+                <label class="form-label">Unggah Surat Pemeriksaan</label>
+                <input type="file" name="examination_letter" class="form-control" accept=".pdf,.doc,.docx,.jpg,.png">
+                @if($prescription->examination_letter)
+                    <p>File saat ini: <a href="{{ asset($prescription->examination_letter) }}" target="_blank">Lihat Surat</a></p>
+                    <img src="{{ asset($prescription->examination_letter) }}" alt="Surat Pemeriksaan" style="max-width: 50%; height: auto;">
+                @endif
+            </div>
 
-                <div id="manualInput">
+            <!-- Input Manual -->
+            <div id="manualInput">
                 <div class="mb-3">
                     <label class="form-label">Tanda Vital</label>
-                    <input type="text" name="vital_signs" value="{{ $prescription->vital_signs }}" class="form-control">
+                    <input type="text" name="vital_signs" class="form-control" value="{{ old('vital_signs', $prescription->vital_signs) }}" >
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Hasil Pemeriksaan</label>
-                    <textarea name="examination_result" class="form-control">{{ $prescription->examination_result }}</textarea>
+                    <textarea name="examination_result" class="form-control" >{{ old('examination_result', $prescription->examination_result) }}</textarea>
                 </div>
 
                 <!-- Select Multiple Obat dari API -->
@@ -55,34 +70,8 @@
                     </select>
                 </div>
             </div>
-                <button type="submit" class="btn btn-primary">Simpan</button>
-            </form>
-        </div>
+
+            <button type="submit" class="btn btn-primary">Perbarui Pemeriksaan</button>
+        </form>
     </div>
 @endsection
-
-@section('scripts')
-    <!-- Tambahkan Select2 untuk UI yang lebih baik -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Pilih",
-                allowClear: true
-            });
-
-            $('#hasLetter').change(function() {
-                if ($(this).val() === 'yes') {
-                    $('#uploadLetter').show();
-                    $('#manualInput').hide();
-                } else {
-                    $('#uploadLetter').hide();
-                    $('#manualInput').show();
-                }
-            });
-        });
-    </script>
-@endsection
-

@@ -13,6 +13,7 @@ class Examination extends Model
     'patient_id',
     'doctor_id',
     'referral_letter',
+    'examination_letter',
     'vital_signs',
     'examination_result',
     'medicines',

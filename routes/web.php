@@ -5,11 +5,13 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\PharmacistController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\LandingPageController;
+
 // use App\Http\Controllers\ExaminationController;
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+Route::get('/', [LandingPageController::class, 'index']);
+Route::get('/home', [LandingPageController::class, 'index']);
+
 
 // Route::post('/login', [AuthController::class, 'login']);
 // Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

@@ -1,6 +1,16 @@
 @extends('adminlte::auth.auth-page', ['auth_type' => 'login'])
 
 @section('auth_body')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form action="{{ route('login.doctor') }}" method="POST">
         @csrf
 

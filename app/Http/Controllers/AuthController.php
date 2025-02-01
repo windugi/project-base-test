@@ -23,48 +23,35 @@ class AuthController extends Controller
 
     // Proses login dokter via API eksternal
     public function doctorLogin(Request $request)
-    {
-        $response = Http::post('http://recruitment.rsdeltasurya.com/api/v1/auth', [
-            'email' => $request->email,
-            'password' => $request->password,
-        ]);
-    
-    
-        if ($response->successful()) {
-            $data = $response->json();
-            // dd($data);
-            // Pastikan token tersedia
-            if (!isset($data['access_token'])) {
-                return back()->withErrors(['login' => 'Gagal mendapatkan token, periksa kembali kredensial.']);
-            }
-    
-            // Simpan user ke dalam database jika belum ada
-            $user = User::updateOrCreate(
-                ['email' => $request->email],
-                [
-                    'name' => 'Doctor', // Bisa diubah jika API mengembalikan nama
-                    'role' => 'doctor',
-                    'password' => bcrypt($request->password), // Dummy password
-                    'api_token' => $data['access_token'] ?? null,
-                ]
-            );
-            // dd($user);
+{
+    $response = Http::post('http://recruitment.rsdeltasurya.com/api/v1/auth', [
+        'email' => $request->email,
+        'password' => $request->password,
+    ]);
 
-            // Debug Response API
-            // dd($response->json());
-
-    
-            // Simpan token ke sesi
-    
-            Auth::login($user); // Login ke sistem Laravel
-            session(['role' => Auth::user()->role, 'api_token' => $data['access_token']]);            
-            // session(['api_token' => $data['access_token'], 'role' => $user->role]);
-            // dd(Auth::user()->role);
-            // dd(session()->all());    
-            return $this->redirectToDashboard();
-
+    if ($response->successful()) {
+        $data = $response->json();
+        if (!isset($data['access_token'])) {
+            return back()->withErrors(['login' => 'Gagal mendapatkan token, periksa kembali kredensial.']);
         }
-    
+
+        // Simpan user ke dalam database jika belum ada
+        $user = User::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'name' => 'Doctor', // Bisa diubah jika API mengembalikan nama
+                'role' => 'doctor',
+                'password' => bcrypt($request->password), // Dummy password
+                'api_token' => $data['access_token'] ?? null,
+            ]
+        );
+
+        // Simpan token ke sesi
+        Auth::login($user); // Login ke sistem Laravel
+        session(['role' => Auth::user()->role, 'api_token' => $data['access_token']]);            
+        return $this->redirectToDashboard();
+        }
+
         return back()->withErrors(['error' => 'Login gagal, periksa email dan password']);
     }
 
